@@ -1,0 +1,2 @@
+# OOP Concepts in CampusNova
+Entities encapsulate data; service classes provide cohesive behaviour. The `IntentMatcher` abstraction enables polymorphic matching. Repository interfaces abstract database details. Constructor injection supports dependency inversion and testing. `ApiExceptionHandler` centralizes failure handling, while collections make matching and response composition simple and efficient.

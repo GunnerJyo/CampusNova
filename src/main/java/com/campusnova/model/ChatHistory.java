@@ -1,0 +1,4 @@
+package com.campusnova.model;
+import javax.persistence.*; import java.time.LocalDateTime;
+@Entity public class ChatHistory { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; private String sessionId; @Column(length=1000) private String question; @Column(length=5000) private String response; private String category; private boolean answered; private LocalDateTime createdAt=LocalDateTime.now();
+ public ChatHistory(){} public ChatHistory(String s,String q,String r,String c,boolean a){sessionId=s;question=q;response=r;category=c;answered=a;} public Long getId(){return id;} public String getSessionId(){return sessionId;} public String getQuestion(){return question;} public String getResponse(){return response;} public String getCategory(){return category;} public boolean isAnswered(){return answered;} public LocalDateTime getCreatedAt(){return createdAt;} }

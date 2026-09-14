@@ -1,0 +1,3 @@
+package com.campusnova.model;
+import javax.persistence.*; import java.time.LocalDateTime;
+@Entity public class Announcement { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id; private String title; @Column(length=3000) private String body; private LocalDateTime createdAt=LocalDateTime.now(); public Announcement(){} public Announcement(String t,String b){title=t;body=b;} public Long getId(){return id;} public String getTitle(){return title;} public void setTitle(String t){title=t;} public String getBody(){return body;} public void setBody(String b){body=b;} public LocalDateTime getCreatedAt(){return createdAt;} }

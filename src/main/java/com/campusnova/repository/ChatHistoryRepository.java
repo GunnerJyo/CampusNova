@@ -1,0 +1,1 @@
+package com.campusnova.repository; import com.campusnova.model.ChatHistory; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface ChatHistoryRepository extends JpaRepository<ChatHistory,Long>{List<ChatHistory> findTop20BySessionIdOrderByCreatedAtDesc(String id); long countByAnswered(boolean answered);}

@@ -1,0 +1,2 @@
+# Architecture
+CampusNova follows a controller → service → repository → entity structure. `PublicController` owns student endpoints; `AdminController` owns protected administration endpoints. `ChatbotService` normalizes a question, asks an `IntentMatcher` implementation to score active FAQs, then records a `ChatHistory` entry. This keeps web concerns, business logic, matching, and persistence independently testable.

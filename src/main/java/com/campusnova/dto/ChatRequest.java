@@ -1,0 +1,1 @@
+package com.campusnova.dto; import javax.validation.constraints.NotBlank; public class ChatRequest { @NotBlank private String question; private String sessionId; public String getQuestion(){return question;} public void setQuestion(String q){question=q;} public String getSessionId(){return sessionId;} public void setSessionId(String s){sessionId=s;} }

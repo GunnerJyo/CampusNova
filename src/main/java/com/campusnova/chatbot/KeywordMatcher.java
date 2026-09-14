@@ -1,0 +1,3 @@
+package com.campusnova.chatbot;
+import com.campusnova.model.Faq; import org.springframework.stereotype.Component; import java.util.*;
+@Component public class KeywordMatcher implements IntentMatcher { public double score(String text,Faq faq){ Set<String> query=words(text), target=words(faq.getQuestion()+" "+faq.getKeywords()+" "+faq.getCategory().getName()); if(query.isEmpty())return 0; int hit=0; for(String w:query)if(target.contains(w))hit++; return (double)hit/query.size(); } private Set<String> words(String s){return new HashSet<String>(Arrays.asList(s.toLowerCase().replaceAll("[^a-z0-9 ]"," ").trim().split("\\s+")));} }

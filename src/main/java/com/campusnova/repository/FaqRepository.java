@@ -1,0 +1,1 @@
+package com.campusnova.repository; import com.campusnova.model.Faq; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface FaqRepository extends JpaRepository<Faq,Long>{List<Faq> findByActiveTrue(); List<Faq> findByQuestionContainingIgnoreCaseOrAnswerContainingIgnoreCase(String q,String a);}

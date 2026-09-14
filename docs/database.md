@@ -1,0 +1,2 @@
+# Database design
+Core tables: `category(id, name, icon)`, `faq(id, category_id, question, answer, keywords, active, created_at)`, `chat_history(id, session_id, question, response, category, answered, created_at)`, and `announcement(id, title, body, created_at)`. The `faq.category_id` foreign key models the category-to-many-FAQ relationship. For a deployment, add `users` and `admins` with BCrypt password hashes and roles; this demonstration keeps session tokens in memory to avoid claiming production authentication.
