@@ -1,0 +1,3 @@
+package com.campusnova.knowledge;
+/** A safe, displayable piece of institution-owned knowledge. */
+public class KnowledgeDocument { private final String source; private final String category; private final String content; private final boolean verified; public KnowledgeDocument(String source,String category,String content,boolean verified){this.source=source;this.category=category;this.content=content;this.verified=verified;} public String getSource(){return source;} public String getCategory(){return category;} public String getContent(){return content;} public boolean isVerified(){return verified;} }

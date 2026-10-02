@@ -1,0 +1,3 @@
+package com.campusnova.service;
+import com.campusnova.knowledge.*; import org.springframework.stereotype.Service; import java.util.*;
+@Service public class KnowledgeRetrievalService { private final KnowledgeSource source; private final SemanticTextService semantic; public KnowledgeRetrievalService(KnowledgeSource s,SemanticTextService t){source=s;semantic=t;} public RetrievalResult retrieve(String question,Collection<String> memory){List<KnowledgeDocument> docs=source.findRelevant(question,memory);double score=0;for(KnowledgeDocument d:docs)score=Math.max(score,semantic.score(question,memory,d.getContent()));return new RetrievalResult(docs,score);} }

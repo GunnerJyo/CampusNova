@@ -1,61 +1,81 @@
 # CampusNova – Intelligent College Information Assistant
 
-> **Your College. One Conversation.** CampusNova is a polished Java/Spring Boot prototype where **NOVA** answers campus questions through a local, explainable intent engine—not an external AI API.
-
-## Run locally
-
-Prerequisites: Java 8+ and Maven 3.8+.
-
-```bash
-mvn spring-boot:run
-```
-
-Open `http://localhost:8080`. The app starts with an embedded H2 demo database, requiring no installation. Demo admin credentials are `admin` / `nova2026` (change these before any real deployment).
-
-### MySQL setup
-
-Create a database named `campusnova`, then set `DATABASE_URL=jdbc:mysql://localhost:3306/campusnova`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD` before launching. Hibernate creates the tables from the entities. An illustrative normalized schema is in [docs/database.md](docs/database.md).
-
-## Product capabilities
-
-- Premium responsive NOVA conversation interface, suggestions, loading state, history persistence and graceful fallback
-- Local keyword/token similarity scoring over database-managed questions, categories and responses
-- Admin login, protected FAQ create/update/delete APIs, announcements and analytics
-- Seeded, explicitly marked **demo information** for admissions, fees, exams, library, placements, facilities and contacts
-- REST APIs: `POST /api/chat`, `GET /api/faqs`, `GET /api/announcements`, `GET /api/history/{session}`, and `/api/admin/*`
+**Your College. One Conversation.** CampusNova is a Spring Boot college assistant whose chatbot, **NOVA**, combines database knowledge retrieval with an optional Amazon Bedrock generation layer. It is deliberately college-focused, grounded, and usable locally without AWS.
 
 ## Architecture
 
 ```text
-Browser UI → REST Controller → Service → Repository → JPA Database
-                         ↘ ChatbotService → IntentMatcher (KeywordMatcher) → FAQ knowledge base
+Student → Chat API → relevance + conversation context
+        → hybrid database retrieval (FAQ / announcements)
+        → strong verified match: direct answer
+        → contextual match: optional Amazon Bedrock generation
+        → grounding validation → response, source labels, history & analytics
 ```
 
-See [docs/architecture.md](docs/architecture.md), [docs/chatbot-logic.md](docs/chatbot-logic.md), [docs/api.md](docs/api.md), and [docs/oop-concepts.md](docs/oop-concepts.md).
+The FAQ database remains the primary knowledge source. NOVA does not send trivial strong FAQ requests to Bedrock. For less exact questions, it combines token matching, related campus-language families, and recent session context. If enough context is found and Bedrock is enabled, it asks the model to phrase an answer using only that context. If not, NOVA provides a grounded retrieval response or records a **Knowledge Gap**.
 
-## OOP demonstration
+## Grounding and scope
 
-| Concept | CampusNova example |
-|---|---|
-| Classes & objects | `Faq`, `Category`, `ChatHistory`, DTO objects |
-| Encapsulation | Private fields plus public getters/setters in entities |
-| Abstraction | `IntentMatcher` isolates matching behaviour |
-| Polymorphism | `ChatbotService` calls the `IntentMatcher` interface; new strategies can substitute `KeywordMatcher` |
-| Interfaces | Spring Data repository interfaces and `IntentMatcher` |
-| Collections | Sets for token matching, lists/maps for responses and analytics |
-| Exceptions | `ApiExceptionHandler` provides safe error payloads |
-| Database | JPA repositories; MySQL-ready configuration |
+- Institutional facts come only from retrieved CampusNova content.
+- Missing details produce an explicit “not currently available in the knowledge base” response—never invented fees, dates, contacts, policies, or timings.
+- Non-college requests get a polite scope explanation.
+- The Bedrock prompt rejects prompt injection, requests for hidden instructions, credentials, and attempts to override NOVA’s role.
+- Demo seed information is not official institutional data; verify time-sensitive details with the appropriate office.
+
+## Local setup
+
+Requires Java 17 and Maven 3.9+.
+
+```bash
+mvn clean test
+mvn spring-boot:run
+```
+
+Open `http://localhost:8080`. H2 starts automatically; no database or AWS account is required. By default `BEDROCK_ENABLED=false`, so NOVA uses local hybrid retrieval and safe grounded fallbacks. The demonstration admin account is `admin` / `nova2026`; replace it before any real deployment.
+
+## Optional Amazon Bedrock
+
+Set these only in a secure shell, Render configuration, or secret manager—never source control:
+
+| Variable | Required | Purpose |
+|---|---:|---|
+| `BEDROCK_ENABLED` | for AI | `true` enables generation |
+| `AWS_REGION` | for AI | Region hosting the model |
+| `BEDROCK_MODEL_ID` | for AI | Model ID available to the AWS account; configurable without code changes |
+| `BEDROCK_KNOWLEDGE_BASE_ID` | no | Reserved for a future managed Knowledge Bases adapter |
+| `BEDROCK_GUARDRAIL_ID` / `BEDROCK_GUARDRAIL_VERSION` | no | Optional Bedrock Guardrail |
+| `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` | no | MySQL deployment configuration |
+
+Credentials use the AWS SDK v2 default provider chain (for example IAM roles or secure deployment variables). Never commit access keys. The deployment principal needs `bedrock:InvokeModel` for the configured model and Guardrail access where configured; model access must be enabled in the selected region. CampusNova does not create AWS resources or assume a model/Knowledge Base ID exists.
+
+Requests are only sent after retrieval and Bedrock usage can incur AWS charges. Select a model suitable for your budget and monitor AWS usage.
+
+## API and admin
+
+- `POST /api/chat` — `{ "question": "When can I use the library?", "sessionId": "UUID" }`
+- `GET /api/faqs`, `GET /api/announcements`, `GET /api/history/{sessionId}`
+- `POST /api/admin/login`; use the returned `X-Admin-Token` for admin endpoints.
+
+Chat responses include `responseType` (`DIRECT_FAQ`, `AI_RAG`, `RETRIEVAL_FALLBACK`, `KNOWLEDGE_GAP`, `OUT_OF_DOMAIN`) and safe source labels. Admin analytics includes direct, AI/RAG, unanswered, out-of-domain, and knowledge-gap activity. Add an FAQ for a gap and it immediately becomes retrievable without Java changes.
+
+## Render
+
+The Java 17 multi-stage [Dockerfile](Dockerfile) builds with `mvn clean package -DskipTests`, runs the JAR in a Java 17 image, exposes 8080, and preserves `server.port=${PORT:8080}`. Create a Docker web service and configure database plus optional Bedrock variables in Render. The app remains functional without Bedrock.
+
+## Testing and troubleshooting
+
+`mvn test` is deterministic and makes no live Bedrock calls. It covers direct FAQ routing, natural phrasing with mocked AI, unavailable information, out-of-domain behavior, Bedrock fallback, and conversation context. If Bedrock is misconfigured or unavailable, NOVA logs only an exception class and uses retrieved knowledge when possible; AWS details never reach students.
+
+## OOP design
+
+`KnowledgeSource`, `BedrockService`, and `IntentMatcher` isolate interchangeable implementations. Constructor-injected `CollegeRelevanceService`, `KnowledgeRetrievalService`, `ConversationService`, `PromptService`, `GroundingValidationService`, and `NovaChatService` each have a focused responsibility. Entities encapsulate persistence while controllers remain thin.
 
 ## Team
 
-Computer Science and Engineering · B.Tech Computer Science and Business System · Third Semester · PBCSCT304 Object Oriented Programming · 2026–27
+Computer Science and Engineering · B.Tech Computer Science and Business System · Third Semester · PBCSCT304 OOP · 2026–27
 
-- Jyothish Nalinakshan — Roll 32, KSD25CSBS032 — Project Lead / Backend
-- Abdulla Fawas M H — Roll 1, KSD25CSBS001 — Chatbot Logic
-- Devadath E K — Roll 18, KSD25CSBS018 — Database
-- Arun Sourav K — Roll 13, KSD25CSBS013 — Frontend / UI
-- Abhinandh M — Roll 3, KSD25CSBS003 — Testing & Documentation
-
-## Testing and limitations
-
-Run `mvn test`. The included matcher test establishes deterministic local intent matching. Demo login verification uses BCrypt; a production rollout should use database-backed users, durable token/session storage, HTTPS, a secret manager, and an institutional data approval workflow. Screenshot placeholders: home/chat, knowledge base, admin analytics.
+- Jyothish Nalinakshan — Project Lead / Backend
+- Abdulla Fawas M H — Chatbot Logic
+- Devadath E K — Database
+- Arun Sourav K — Frontend / UI
+- Abhinandh M — Testing & Documentation
