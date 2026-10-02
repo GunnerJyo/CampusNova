@@ -8,3 +8,5 @@ CREATE TABLE announcement (id BIGINT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(2
 CREATE TABLE users (id BIGINT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) UNIQUE, name VARCHAR(255), role VARCHAR(40), created_at TIMESTAMP);
 CREATE TABLE admins (id BIGINT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(40));
 CREATE TABLE college_information (id BIGINT AUTO_INCREMENT PRIMARY KEY, info_key VARCHAR(255) UNIQUE, info_value VARCHAR(5000), verified BOOLEAN, updated_at TIMESTAMP);
+CREATE TABLE official_knowledge (id BIGINT AUTO_INCREMENT PRIMARY KEY, source_url VARCHAR(1000) UNIQUE, title VARCHAR(255), page_type VARCHAR(255), category VARCHAR(255), extracted_text VARCHAR(12000), source_published_date TIMESTAMP NULL, source_updated_date TIMESTAMP NULL, imported_at TIMESTAMP, official_source BOOLEAN, verified BOOLEAN, active BOOLEAN, checksum VARCHAR(255));
+CREATE INDEX idx_official_knowledge_active ON official_knowledge(active, official_source);

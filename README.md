@@ -1,6 +1,8 @@
 # CampusNova – Intelligent College Information Assistant
 
-**Your College. One Conversation.** CampusNova is a Spring Boot college assistant whose chatbot, **NOVA**, combines database knowledge retrieval with an optional Amazon Bedrock generation layer. It is deliberately college-focused, grounded, and usable locally without AWS.
+**Your College. One Conversation.** CampusNova is an AI-powered student information assistant for **L B S College of Engineering, Kasaragod, Kerala**. It uses [lbscek.ac.in](https://lbscek.ac.in/) as its primary institutional source; it is not represented as an official college service.
+
+LBSCEK is a Government of Kerala undertaking affiliated to APJ Abdul Kalam Technological University (KTU). Address: Povval, Muliyar Post Office, Kasaragod, Kerala – 671542.
 
 ## Architecture
 
@@ -12,15 +14,15 @@ Student → Chat API → relevance + conversation context
         → grounding validation → response, source labels, history & analytics
 ```
 
-The FAQ database remains the primary knowledge source. NOVA does not send trivial strong FAQ requests to Bedrock. For less exact questions, it combines token matching, related campus-language families, and recent session context. If enough context is found and Bedrock is enabled, it asks the model to phrase an answer using only that context. If not, NOVA provides a grounded retrieval response or records a **Knowledge Gap**.
+Official LBSCEK records are stored separately with their URL, title, page type, category, import time, active/verified flags, and checksum. An administrator imports the curated core pages through `POST /api/admin/official-knowledge/import-core`; chat messages never crawl the website. The source hierarchy is: current official LBSCEK content, verified admin content, then legacy/internal material. Weak documents are rejected by a relevance gate before Bedrock can see them.
 
 ## Grounding and scope
 
-- Institutional facts come only from retrieved CampusNova content.
+- Institutional facts come only from relevant official LBSCEK content.
 - Missing details produce an explicit “not currently available in the knowledge base” response—never invented fees, dates, contacts, policies, or timings.
 - Non-college requests get a polite scope explanation.
 - The Bedrock prompt rejects prompt injection, requests for hidden instructions, credentials, and attempts to override NOVA’s role.
-- Demo seed information is not official institutional data; verify time-sensitive details with the appropriate office.
+- Response labels distinguish `VERIFIED_OFFICIAL`, `AI_GROUNDED`, `GENERAL_GUIDANCE`, and `OUT_OF_SCOPE`. General guidance carries no misleading citation and is logged as a knowledge gap.
 
 ## Local setup
 
@@ -44,6 +46,7 @@ Set these only in a secure shell, Render configuration, or secret manager—neve
 | `BEDROCK_MODEL_ID` | for AI | Model ID available to the AWS account; configurable without code changes |
 | `BEDROCK_KNOWLEDGE_BASE_ID` | no | Reserved for a future managed Knowledge Bases adapter |
 | `BEDROCK_GUARDRAIL_ID` / `BEDROCK_GUARDRAIL_VERSION` | no | Optional Bedrock Guardrail |
+| `COLLEGE_OFFICIAL_DOMAIN` | no | Official LBSCEK import allowlist; defaults to `https://lbscek.ac.in/` |
 | `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` | no | MySQL deployment configuration |
 
 Credentials use the AWS SDK v2 default provider chain (for example IAM roles or secure deployment variables). Never commit access keys. The deployment principal needs `bedrock:InvokeModel` for the configured model and Guardrail access where configured; model access must be enabled in the selected region. CampusNova does not create AWS resources or assume a model/Knowledge Base ID exists.
@@ -56,7 +59,7 @@ Requests are only sent after retrieval and Bedrock usage can incur AWS charges. 
 - `GET /api/faqs`, `GET /api/announcements`, `GET /api/history/{sessionId}`
 - `POST /api/admin/login`; use the returned `X-Admin-Token` for admin endpoints.
 
-Chat responses include `responseType` (`DIRECT_FAQ`, `AI_RAG`, `RETRIEVAL_FALLBACK`, `KNOWLEDGE_GAP`, `OUT_OF_DOMAIN`) and safe source labels. Admin analytics includes direct, AI/RAG, unanswered, out-of-domain, and knowledge-gap activity. Add an FAQ for a gap and it immediately becomes retrievable without Java changes.
+Chat responses include the accurate response type and only sources actually used. The protected official-import endpoints accept only URLs on the configured official domain. Use `POST /api/admin/official-knowledge/import-core` to refresh the curated official pages, or `POST /api/admin/official-knowledge/import?url=...` for one approved LBSCEK page. Imported HTML is reduced to text and treated as untrusted reference content, never as instructions.
 
 ## Render
 
