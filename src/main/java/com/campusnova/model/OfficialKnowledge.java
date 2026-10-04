@@ -26,6 +26,9 @@ public class OfficialKnowledge {
     private boolean verified = true;
     private boolean active = true;
     private String checksum;
+    private LocalDateTime verifiedAt = LocalDateTime.now();
+    private int sourcePriority;
+    private String contentVersion;
 
     public OfficialKnowledge() { }
     public OfficialKnowledge(String url, String title, String type, String category, String text) {
@@ -46,4 +49,7 @@ public class OfficialKnowledge {
     public boolean isVerified() { return verified; } public void setVerified(boolean v) { verified = v; }
     public boolean isActive() { return active; } public void setActive(boolean v) { active = v; }
     public String getChecksum() { return checksum; } public void setChecksum(String v) { checksum = v; }
+    public LocalDateTime getVerifiedAt() { return verifiedAt; } public void setVerifiedAt(LocalDateTime v) { verifiedAt = v; }
+    public int getSourcePriority() { return sourcePriority; } public void setSourcePriority(int v) { sourcePriority = v; }
+    public String getContentVersion() { return contentVersion; } public void setContentVersion(String v) { contentVersion = v; }
 }

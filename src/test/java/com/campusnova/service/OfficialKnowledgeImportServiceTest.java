@@ -22,4 +22,11 @@ class OfficialKnowledgeImportServiceTest {
         OfficialKnowledgeImportService importer=new OfficialKnowledgeImportService(mock(OfficialKnowledgeRepository.class),profile);
         assertThrows(IllegalArgumentException.class,()->importer.canonicalOfficialUrl("https://example.com/library"));
     }
+    @Test void principalProfileIsStoredAsDedicatedCurrentLeadershipSection() {
+        CollegeProfile profile=new CollegeProfile(); profile.setOfficialDomain("https://lbscek.ac.in/");
+        OfficialKnowledgeImportService importer=new OfficialKnowledgeImportService(mock(OfficialKnowledgeRepository.class),profile);
+        String html="<html><title>Principal – LBSCEK</title><main><h1>Principal</h1><div>Prof. (Dr.) Mohammad Sekoor T. LBS College of Engineering Kasaragod, Kerala.</div><h4>Educational Qualifications</h4><p>Mechanical Engineering qualifications and experience.</p></main></html>";
+        List<OfficialKnowledgeImportService.ExtractedSection> sections=importer.extractSections("https://lbscek.ac.in/principal/",html);
+        assertEquals("Current Principal",sections.get(0).heading);assertTrue(sections.get(0).text.contains("Mohammad Sekoor"));assertFalse(sections.get(0).text.contains("Educational Qualifications"));
+    }
 }
