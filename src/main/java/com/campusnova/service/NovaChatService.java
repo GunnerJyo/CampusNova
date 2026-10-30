@@ -25,7 +25,7 @@ public class NovaChatService {
             if(generated.isPresent()&&grounding.acceptable(generated.get(),official)) { answer=generated.get(); type="AI_GROUNDED"; }
             else { answer=(formatter==null?new OfficialAnswerFormatter():formatter).format(question,primary); type="VERIFIED_OFFICIAL"; }
             category=primary.getCategory(); answered=true; sources=official.sources();
-        } else { answer="I don’t currently have the official LBSCEK-specific information needed to answer that exactly. Please check the relevant college office, department, or official notice at "+profile.getOfficialDomain()+" for the confirmed procedure."; type="GENERAL_GUIDANCE"; }
+        } else { boolean transport=question.toLowerCase(Locale.ROOT).matches(".*(bus|route|transport|poinachi).*?"); answer=transport?"I don’t currently have a verified LBSCEK bus-route record for that stop. Please confirm the current route with the college transport office or the official LBSCEK notice.":"I don’t currently have verified official LBSCEK information to answer that exactly. Please check the relevant college office, department, or official notice at "+profile.getOfficialDomain()+"."; type="GENERAL_GUIDANCE"; }
         long elapsed=System.currentTimeMillis()-start; history.save(new ChatHistory(session,question,answer,category,answered,type,!college,elapsed));
         Map<String,Object> response=new LinkedHashMap<String,Object>(); response.put("answer",answer);response.put("category",category);response.put("answered",answered);response.put("responseType",type);response.put("sources",sources);response.put("suggestions",Arrays.asList("LBSCEK library information","LBSCEK admission procedure","LBSCEK bus service"));return response;
     }

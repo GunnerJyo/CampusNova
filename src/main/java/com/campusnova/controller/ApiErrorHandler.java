@@ -5,11 +5,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-/** Keeps API failures machine-readable without revealing implementation or credentials. */
+/** Sends safe JSON errors to the chat client without exposing internal implementation details. */
 @RestControllerAdvice public class ApiErrorHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,String>> invalidRequest(MethodArgumentNotValidException ignored){return error(HttpStatus.BAD_REQUEST,"Please enter a question before sending.");}
+    public ResponseEntity<Map<String,String>> invalid(MethodArgumentNotValidException ignored){return response(HttpStatus.BAD_REQUEST,"Please enter a question before sending.");}
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String,String>> unavailable(Exception ignored){return error(HttpStatus.SERVICE_UNAVAILABLE,"The information service is temporarily unavailable.");}
-    private ResponseEntity<Map<String,String>> error(HttpStatus status,String message){Map<String,String> body=new LinkedHashMap<String,String>();body.put("error",message);return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(body);}
+    public ResponseEntity<Map<String,String>> unavailable(Exception ignored){return response(HttpStatus.SERVICE_UNAVAILABLE,"The information service is temporarily unavailable.");}
+    private ResponseEntity<Map<String,String>> response(HttpStatus status,String message){Map<String,String> body=new LinkedHashMap<String,String>();body.put("error",message);return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(body);}
 }

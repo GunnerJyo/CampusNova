@@ -9,4 +9,5 @@ public interface OfficialKnowledgeRepository extends JpaRepository<OfficialKnowl
     Optional<OfficialKnowledge> findBySourceUrl(String url);
     List<OfficialKnowledge> findBySourcePageUrl(String sourcePageUrl);
     List<OfficialKnowledge> findBySourceUrlAndPageType(String sourceUrl, String pageType);
+    boolean existsByActiveTrueAndOfficialSourceTrueAndPageType(String pageType);
 }
